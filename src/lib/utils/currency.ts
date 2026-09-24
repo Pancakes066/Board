@@ -13,3 +13,12 @@ export function formatSignedCurrency(cents: number): string {
   const formatted = formatCurrency(Math.abs(cents));
   return cents < 0 ? `-${formatted}` : `+${formatted}`;
 }
+
+/** Compact axis-tick label: "1,7k€" above 1000€, "45€" below — shared so
+ * every chart's Y-axis converts cents the same way (a chart-local copy of
+ * this once got the cents->euros->k division wrong by a factor of 100). */
+export function formatCompactCurrency(cents: number): string {
+  const euros = cents / 100;
+  if (Math.abs(euros) >= 1000) return `${Math.round(euros / 100) / 10}k€`;
+  return `${Math.round(euros)}€`;
+}

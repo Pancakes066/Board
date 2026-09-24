@@ -23,6 +23,23 @@ export const MONTH_LABELS = [
   "décembre",
 ] as const;
 
+// Not MONTH_LABELS.slice(0, 3): "juin"/"juillet" both truncate to "jui",
+// same for a couple of other pairs — these are chosen to all stay distinct.
+export const MONTH_LABELS_SHORT = [
+  "janv.",
+  "févr.",
+  "mars",
+  "avr.",
+  "mai",
+  "juin",
+  "juil.",
+  "août",
+  "sept.",
+  "oct.",
+  "nov.",
+  "déc.",
+] as const;
+
 /** Number of days in `month` (1-12) of `year`. */
 export function daysInMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month, 0)).getUTCDate();

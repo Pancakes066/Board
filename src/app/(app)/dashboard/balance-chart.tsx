@@ -11,17 +11,11 @@ import {
 } from "recharts";
 
 import type { BalancePoint } from "@/server/services/forecast/balance";
-import { formatCurrency } from "@/lib/utils/currency";
+import { formatCurrency, formatCompactCurrency } from "@/lib/utils/currency";
 
 function formatAxisDate(dateKey: string): string {
   const [, month, day] = dateKey.split("-");
   return `${day}/${month}`;
-}
-
-function formatAxisAmount(cents: number): string {
-  const euros = cents / 100;
-  if (Math.abs(euros) >= 1000) return `${Math.round(euros / 100) / 10}k€`;
-  return `${Math.round(euros)}€`;
 }
 
 function ChartTooltip({
@@ -64,7 +58,7 @@ export function BalanceChart({ points }: { points: BalancePoint[] }) {
           minTickGap={32}
         />
         <YAxis
-          tickFormatter={formatAxisAmount}
+          tickFormatter={formatCompactCurrency}
           tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
           axisLine={false}
           tickLine={false}
