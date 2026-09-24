@@ -33,3 +33,25 @@ export function formatDate(date: Date): string {
     date,
   );
 }
+
+export type Period = { year: number; month: number };
+
+/** UTC calendar year/month of `date` — see the recurrence engine for why
+ * everything here is UTC-based (date-only strings from <input type="date">
+ * parse as UTC midnight, so local-time getters would drift by a day near
+ * midnight in any non-UTC server timezone). */
+export function periodOf(date: Date): Period {
+  return { year: date.getUTCFullYear(), month: date.getUTCMonth() + 1 };
+}
+
+export function nextPeriod({ year, month }: Period): Period {
+  return month === 12 ? { year: year + 1, month: 1 } : { year, month: month + 1 };
+}
+
+export function firstOfMonthUTC({ year, month }: Period): Date {
+  return new Date(Date.UTC(year, month - 1, 1));
+}
+
+export function lastOfMonthUTC({ year, month }: Period): Date {
+  return new Date(Date.UTC(year, month - 1, daysInMonth(year, month), 23, 59, 59, 999));
+}

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireUser } from "@/server/auth/session";
 import { recurringRuleSchema } from "@/lib/validation/recurring-rule";
 import * as recurringRulesService from "@/server/services/recurring-rules/recurring-rules";
+import { generateRollingWindow, onRecurringRuleUpdated } from "@/server/services/recurrence/sync-forward";
 
 export type RecurringRuleActionState = { error?: string } | undefined;
 
@@ -36,8 +37,9 @@ export async function createRecurringRuleAction(
 
   try {
     await recurringRulesService.createRecurringRule(user.id, parsed.data);
-    // The generation engine (milestone 7) will hook in here to immediately
-    // generate this rule's occurrences for the current + next month.
+    // So the new rule's occurrence shows up immediately, without waiting
+    // for the next dashboard visit to trigger generation.
+    await generateRollingWindow(user.id, new Date());
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Erreur inconnue." };
   }
@@ -59,8 +61,7 @@ export async function updateRecurringRuleAction(
 
   try {
     await recurringRulesService.updateRecurringRule(user.id, ruleId, parsed.data);
-    // Ditto: milestone 7 wires onRecurringRuleUpdated here (re-sync future,
-    // untouched, planned occurrences to the edited rule).
+    await onRecurringRuleUpdated(user.id, ruleId, new Date());
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Erreur inconnue." };
   }
@@ -73,6 +74,10 @@ export async function stopRecurringRuleAction(ruleId: string): Promise<{ error?:
   const user = await requireUser();
   try {
     await recurringRulesService.stopRecurringRule(user.id, ruleId);
+    // Removes any already-generated future occurrence that's no longer
+    // covered by the rule's (now shortened) range — e.g. next month's rent
+    // if the lease was stopped today.
+    await onRecurringRuleUpdated(user.id, ruleId, new Date());
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Erreur inconnue." };
   }
@@ -84,6 +89,7 @@ export async function reactivateRecurringRuleAction(ruleId: string): Promise<{ e
   const user = await requireUser();
   try {
     await recurringRulesService.reactivateRecurringRule(user.id, ruleId);
+    await onRecurringRuleUpdated(user.id, ruleId, new Date());
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Erreur inconnue." };
   }
