@@ -19,8 +19,11 @@ export const recurringRuleSchema = z
     month: optionalIntInRange(1, 12),
     dayOfWeek: optionalIntInRange(0, 6),
     categoryId: z.string().min(1, "Catégorie requise."),
+    // null (not ""): the field is entirely absent from the form for a
+    // non-SAVINGS rule (conditionally rendered), so FormData.get returns
+    // null rather than an empty string in that case.
     savingsGoalId: z.preprocess(
-      (v) => (v === "" || v === "none" ? undefined : v),
+      (v) => (v === "" || v === "none" || v === null ? undefined : v),
       z.string().optional(),
     ),
     startDate: z.coerce.date("Date de début invalide."),

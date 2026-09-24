@@ -7,6 +7,7 @@ import { getCurrentBalance, getBalanceHistory } from "@/server/services/forecast
 import { currentTimestamp, periodOf, previousPeriod, MONTH_LABELS } from "@/lib/utils/date";
 import { StatTile, type Delta } from "./stat-tile";
 import { BalanceChart } from "./balance-chart";
+import { ForecastBreakdown } from "./forecast-breakdown";
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -90,6 +91,8 @@ export default async function DashboardPage() {
           <BalanceChart points={balanceHistory} />
         </CardContent>
       </Card>
+
+      <ForecastBreakdown forecast={forecast} />
     </div>
   );
 }
