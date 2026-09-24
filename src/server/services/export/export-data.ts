@@ -37,8 +37,15 @@ export async function getFullUserExport(userId: string) {
 
 type ExportedTransaction = Awaited<ReturnType<typeof getFullUserExport>>["transactions"][number];
 
+// Prefix a leading =, +, -, @, tab or CR with an apostrophe — otherwise
+// spreadsheet apps (Excel, Sheets, LibreOffice) read a cell like
+// `=cmd|'/bin/calc'!A0` or `=HYPERLINK(...)` in `notes` as a formula and
+// execute it on open ("CSV injection"). `notes` is free text a user
+// controls, so this is a real risk for anyone who opens their own export,
+// not just a theoretical one.
 function csvField(value: string): string {
-  return `"${value.replace(/"/g, '""')}"`;
+  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  return `"${safe.replace(/"/g, '""')}"`;
 }
 
 /** CSV covers transactions only — the one table people actually want in a

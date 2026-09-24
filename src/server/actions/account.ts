@@ -4,6 +4,7 @@ import { signOut } from "@/server/auth/auth.config";
 import { prisma } from "@/server/db/prisma";
 import { requireUser } from "@/server/auth/session";
 import { hashPassword, verifyPassword } from "@/server/auth/password";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import { changePasswordSchema, deleteAccountSchema } from "@/lib/validation/account";
 
 export type AccountActionState = { error?: string; success?: string } | undefined;
@@ -20,6 +21,17 @@ export async function changePasswordAction(
   const parsed = changePasswordSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide." };
+  }
+
+  // Someone holding just the session cookie (stolen token, shared device,
+  // XSS) still has to know the real password to change it — this throttles
+  // brute-forcing that confirmation, same shape as the login rate limit.
+  const { allowed } = checkRateLimit(`change-password:${user.id}`, {
+    max: 10,
+    windowMs: 5 * 60 * 1000,
+  });
+  if (!allowed) {
+    return { error: "Trop de tentatives. Réessayez dans quelques minutes." };
   }
 
   const dbUser = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
@@ -43,6 +55,14 @@ export async function deleteAccountAction(
   const parsed = deleteAccountSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide." };
+  }
+
+  const { allowed } = checkRateLimit(`delete-account:${user.id}`, {
+    max: 10,
+    windowMs: 5 * 60 * 1000,
+  });
+  if (!allowed) {
+    return { error: "Trop de tentatives. Réessayez dans quelques minutes." };
   }
 
   const dbUser = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
