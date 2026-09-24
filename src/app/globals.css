@@ -1,0 +1,129 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Board — design tokens (noir & or)
+ * Dark is the default brand theme (near-black + gold accent).
+ * Light is a coherent, accessible alternative (warm off-white + darker gold).
+ * `--positive` / `--warning` are custom additions (not part of shadcn's base
+ * token set): financial state (income vs expense, budget nearing its cap)
+ * must stay readable at a glance and must never be confused with the gold
+ * brand/accent color, so they are deliberately distinct hues.
+ */
+
+:root {
+  --radius: 0.65rem;
+
+  --background: #faf8f3;
+  --foreground: #1a1710;
+  --card: #ffffff;
+  --card-foreground: #1a1710;
+  --popover: #ffffff;
+  --popover-foreground: #1a1710;
+  --primary: #a3730a;
+  --primary-foreground: #fffdf7;
+  --secondary: #f0ebdd;
+  --secondary-foreground: #1a1710;
+  --muted: #f0ebdd;
+  --muted-foreground: #6b6354;
+  --accent: #f0ebdd;
+  --accent-foreground: #1a1710;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --positive: #15803d;
+  --positive-foreground: #ffffff;
+  --warning: #c2410c;
+  --warning-foreground: #ffffff;
+  --border: #e5dfc8;
+  --input: #e5dfc8;
+  --ring: #a3730a;
+
+  --chart-1: #a3730a;
+  --chart-2: #2563eb;
+  --chart-3: #15803d;
+  --chart-4: #dc2626;
+  --chart-5: #7c3aed;
+}
+
+.dark {
+  --background: #0b0b0d;
+  --foreground: #f5f1e8;
+  --card: #151317;
+  --card-foreground: #f5f1e8;
+  --popover: #151317;
+  --popover-foreground: #f5f1e8;
+  --primary: #d4af37;
+  --primary-foreground: #1a1408;
+  --secondary: #1f1c17;
+  --secondary-foreground: #f5f1e8;
+  --muted: #1c1a17;
+  --muted-foreground: #a39c8c;
+  --accent: #26211a;
+  --accent-foreground: #f5f1e8;
+  --destructive: #f87171;
+  --destructive-foreground: #2a0a0a;
+  --positive: #4ade80;
+  --positive-foreground: #072a13;
+  --warning: #f0883e;
+  --warning-foreground: #2a1204;
+  --border: #2a251e;
+  --input: #2a251e;
+  --ring: #d4af37;
+
+  --chart-1: #d4af37;
+  --chart-2: #6ea8fe;
+  --chart-3: #4ade80;
+  --chart-4: #f87171;
+  --chart-5: #a78bfa;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-positive: var(--positive);
+  --color-positive-foreground: var(--positive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+* {
+  border-color: var(--color-border, currentColor);
+}
