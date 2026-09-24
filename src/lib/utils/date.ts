@@ -73,6 +73,11 @@ export function comparePeriods(a: Period, b: Period): number {
   return a.year !== b.year ? a.year - b.year : a.month - b.month;
 }
 
+/** How many calendar months `a` is before `b` (negative if after). */
+export function monthsBetweenPeriods(a: Period, b: Period): number {
+  return (b.year - a.year) * 12 + (b.month - a.month);
+}
+
 /**
  * Wraps Date.now() so call sites that need "the current instant" don't
  * read the clock directly inside a component's own body — the
