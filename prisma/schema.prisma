@@ -1,0 +1,238 @@
+// Board — data model
+// See /root/.claude/plans/polished-percolating-globe.md for the full design
+// rationale (unified Transaction model, sourceDate/date split, etc).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Plan {
+  FREE
+  PREMIUM
+}
+
+enum FlowType {
+  INCOME
+  EXPENSE
+  SAVINGS
+}
+
+enum RecurrenceFrequency {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum OccurrenceStatus {
+  PLANNED // "prévue"
+  COMPLETED // "effectuée"
+  SKIPPED // user explicitly cancelled this one occurrence
+}
+
+enum GoalStatus {
+  ACTIVE
+  ACHIEVED
+  ARCHIVED
+}
+
+// ============================================================
+// AUTH — standard Auth.js / Prisma adapter shape.
+// `Account` here = OAuth-provider link, NOT a financial account.
+// ============================================================
+
+model User {
+  id                   String    @id @default(cuid())
+  name                 String?
+  email                String    @unique
+  emailVerified        DateTime?
+  image                String?
+  passwordHash         String? // null for OAuth-only users
+  plan                 Plan      @default(FREE)
+  currency             String    @default("EUR")
+  startingBalanceCents Int       @default(0)
+  startingBalanceDate  DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  accounts       Account[]
+  sessions       Session[]
+  categories     Category[]
+  recurringRules RecurringRule[]
+  transactions   Transaction[]
+  budgets        Budget[]
+  savingsGoals   SavingsGoal[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================================
+// CATEGORIES — default (userId=null) + user-scoped custom
+// ============================================================
+
+model Category {
+  id        String   @id @default(cuid())
+  userId    String? // null = global default category
+  name      String
+  emoji     String?
+  color     String? // stable hex color, for chart consistency
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user           User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recurringRules RecurringRule[]
+  transactions   Transaction[]
+  budgets        Budget[]
+
+  @@unique([userId, name])
+}
+
+// ============================================================
+// RECURRING RULES — income / expense / savings, incl. subscriptions
+// ============================================================
+
+model RecurringRule {
+  id             String              @id @default(cuid())
+  userId         String
+  type           FlowType
+  name           String
+  amountCents    Int
+  frequency      RecurrenceFrequency
+  dayOfMonth     Int? // 1-31 — MONTHLY & YEARLY (clamped to last day of month)
+  month          Int? // 1-12 — YEARLY only
+  dayOfWeek      Int? // 0(Sun)-6(Sat) — WEEKLY only
+  startDate      DateTime
+  endDate        DateTime?
+  categoryId     String
+  isSubscription Boolean             @default(false) // meaningful when type=EXPENSE
+  savingsGoalId  String? // meaningful when type=SAVINGS
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    Category      @relation(fields: [categoryId], references: [id])
+  savingsGoal SavingsGoal?  @relation(fields: [savingsGoalId], references: [id])
+  occurrences Transaction[]
+
+  @@index([userId, type])
+  @@index([userId, isSubscription])
+}
+
+// ============================================================
+// TRANSACTIONS — generated occurrences + manual entries, unified
+// ============================================================
+
+model Transaction {
+  id              String           @id @default(cuid())
+  userId          String // denormalized — avoids joining through RecurringRule on hot queries
+  recurringRuleId String? // null = manual, one-off entry
+  type            FlowType
+  status          OccurrenceStatus @default(PLANNED)
+  amountCents     Int // effective amount — may override the parent rule's amount
+  categoryId      String
+  savingsGoalId   String?
+  sourceDate      DateTime // IMMUTABLE — rule-computed date, idempotency anchor
+  date            DateTime // mutable, user-facing/effective date (the override target)
+  periodYear      Int // aggregation bucket — derived from sourceDate, not date
+  periodMonth     Int // 1-12
+  isModified      Boolean          @default(false) // true once amount/date/category diverge from the rule
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recurringRule RecurringRule? @relation(fields: [recurringRuleId], references: [id], onDelete: Cascade)
+  category      Category       @relation(fields: [categoryId], references: [id])
+  savingsGoal   SavingsGoal?   @relation(fields: [savingsGoalId], references: [id])
+
+  // NULLs are distinct in Postgres unique indexes, so manual transactions
+  // (recurringRuleId = null) never collide with each other here — this
+  // constraint only ever matters for generated rows.
+  @@unique([recurringRuleId, sourceDate])
+  @@index([userId, periodYear, periodMonth])
+  @@index([userId, type, status])
+  @@index([userId, categoryId])
+}
+
+// ============================================================
+// BUDGETS — ongoing per-category cap (no month-by-month rows)
+// ============================================================
+
+model Budget {
+  id          String   @id @default(cuid())
+  userId      String
+  categoryId  String
+  amountCents Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([userId, categoryId])
+}
+
+// ============================================================
+// SAVINGS GOALS
+// ============================================================
+
+model SavingsGoal {
+  id                 String     @id @default(cuid())
+  userId             String
+  name               String
+  emoji              String?
+  targetAmountCents  Int
+  initialAmountCents Int        @default(0) // "already saved" at goal-creation time
+  targetDate         DateTime?
+  status             GoalStatus @default(ACTIVE)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recurringRules RecurringRule[]
+  transactions   Transaction[]
+  // currentAmountCents is intentionally NOT a column — computed from
+  // initialAmountCents + completed linked transactions. See
+  // src/server/services/savings/goal-projection.ts.
+}
