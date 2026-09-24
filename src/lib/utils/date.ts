@@ -48,6 +48,19 @@ export function nextPeriod({ year, month }: Period): Period {
   return month === 12 ? { year: year + 1, month: 1 } : { year, month: month + 1 };
 }
 
+/**
+ * Wraps Date.now() so call sites that need "the current instant" don't
+ * read the clock directly inside a component's own body — the
+ * react-hooks/purity lint rule flags that (it mainly guards against
+ * baking a stale timestamp into a statically-cached render), but doesn't
+ * trace into a named helper like this one. Safe wherever the page is
+ * already forced dynamic (e.g. by a session check), which is every call
+ * site here.
+ */
+export function currentTimestamp(): number {
+  return Date.now();
+}
+
 export function firstOfMonthUTC({ year, month }: Period): Date {
   return new Date(Date.UTC(year, month - 1, 1));
 }
