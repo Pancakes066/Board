@@ -16,6 +16,14 @@ async function assertValidCategory(userId: string, categoryId: string) {
   }
 }
 
+async function assertValidSavingsGoal(userId: string, savingsGoalId: string | undefined) {
+  if (!savingsGoalId) return;
+  const goal = await prisma.savingsGoal.findUnique({ where: { id: savingsGoalId } });
+  if (!goal || goal.userId !== userId) {
+    throw new Error("Objectif d'épargne invalide.");
+  }
+}
+
 async function getOwnedRule(userId: string, ruleId: string) {
   const rule = await prisma.recurringRule.findUnique({ where: { id: ruleId } });
   if (!rule || rule.userId !== userId) {
@@ -26,6 +34,8 @@ async function getOwnedRule(userId: string, ruleId: string) {
 
 export async function createRecurringRule(userId: string, input: RecurringRuleInput) {
   await assertValidCategory(userId, input.categoryId);
+  const savingsGoalId = input.type === "SAVINGS" ? input.savingsGoalId : undefined;
+  await assertValidSavingsGoal(userId, savingsGoalId);
 
   return prisma.recurringRule.create({
     data: {
@@ -38,6 +48,7 @@ export async function createRecurringRule(userId: string, input: RecurringRuleIn
       month: input.month,
       dayOfWeek: input.dayOfWeek,
       categoryId: input.categoryId,
+      savingsGoalId: savingsGoalId ?? null,
       startDate: input.startDate,
       endDate: input.endDate,
       isSubscription: input.type === "EXPENSE" ? input.isSubscription : false,
@@ -52,6 +63,8 @@ export async function updateRecurringRule(
 ) {
   await getOwnedRule(userId, ruleId);
   await assertValidCategory(userId, input.categoryId);
+  const savingsGoalId = input.type === "SAVINGS" ? input.savingsGoalId : undefined;
+  await assertValidSavingsGoal(userId, savingsGoalId);
 
   return prisma.recurringRule.update({
     where: { id: ruleId },
@@ -64,6 +77,7 @@ export async function updateRecurringRule(
       month: input.month,
       dayOfWeek: input.dayOfWeek,
       categoryId: input.categoryId,
+      savingsGoalId: savingsGoalId ?? null,
       startDate: input.startDate,
       endDate: input.endDate,
       isSubscription: input.type === "EXPENSE" ? input.isSubscription : false,

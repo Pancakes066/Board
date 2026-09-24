@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/dialog";
 import { WEEKDAY_LABELS, MONTH_LABELS } from "@/lib/utils/date";
 
+type SavingsGoalOption = { id: string; name: string; emoji: string | null };
+
 type RuleFormValues = {
   id: string;
   type: FlowType;
@@ -39,6 +41,7 @@ type RuleFormValues = {
   month: number | null;
   dayOfWeek: number | null;
   categoryId: string;
+  savingsGoalId: string | null;
   startDate: Date;
   endDate: Date | null;
   isSubscription: boolean;
@@ -51,11 +54,13 @@ function toDateInputValue(date: Date | null | undefined): string {
 
 function RecurringRuleForm({
   categories,
+  savingsGoals,
   rule,
   onSuccess,
   onCancel,
 }: {
   categories: Category[];
+  savingsGoals: SavingsGoalOption[];
   rule?: RuleFormValues;
   onSuccess: () => void;
   onCancel: () => void;
@@ -126,6 +131,25 @@ function RecurringRuleForm({
           </SelectContent>
         </Select>
       </div>
+
+      {type === "SAVINGS" && savingsGoals.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="savingsGoalId">Objectif d&apos;épargne (optionnel)</Label>
+          <Select name="savingsGoalId" defaultValue={rule?.savingsGoalId ?? "none"}>
+            <SelectTrigger id="savingsGoalId" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Aucun</SelectItem>
+              {savingsGoals.map((g) => (
+                <SelectItem key={g.id} value={g.id}>
+                  {g.emoji} {g.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="frequency">Fréquence</Label>
@@ -241,11 +265,13 @@ export function RecurringRuleFormDialog({
   open,
   onOpenChange,
   categories,
+  savingsGoals,
   rule,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categories: Category[];
+  savingsGoals: SavingsGoalOption[];
   rule?: RuleFormValues;
 }) {
   const isEdit = Boolean(rule);
@@ -263,6 +289,7 @@ export function RecurringRuleFormDialog({
           <RecurringRuleForm
             key={rule?.id ?? "create"}
             categories={categories}
+            savingsGoals={savingsGoals}
             rule={rule}
             onSuccess={() => onOpenChange(false)}
             onCancel={() => onOpenChange(false)}

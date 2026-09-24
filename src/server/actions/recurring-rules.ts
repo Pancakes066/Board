@@ -19,6 +19,7 @@ function parseInput(formData: FormData) {
     month: formData.get("month"),
     dayOfWeek: formData.get("dayOfWeek"),
     categoryId: formData.get("categoryId"),
+    savingsGoalId: formData.get("savingsGoalId"),
     startDate: formData.get("startDate"),
     endDate: formData.get("endDate"),
     isSubscription: formData.get("isSubscription"),

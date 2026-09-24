@@ -5,6 +5,8 @@ import { Plus, Pencil, Trash2, Ban, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import type { Category, RecurringRule } from "@prisma/client";
 
+type SavingsGoalOption = { id: string; name: string; emoji: string | null };
+
 import {
   deleteRecurringRuleAction,
   reactivateRecurringRuleAction,
@@ -46,10 +48,12 @@ function RuleStatus({ endDate, now }: { endDate: Date | null; now: number }) {
 function RuleRow({
   rule,
   categories,
+  savingsGoals,
   now,
 }: {
   rule: RuleWithCategory;
   categories: Category[];
+  savingsGoals: SavingsGoalOption[];
   now: number;
 }) {
   const [editing, setEditing] = useState(false);
@@ -123,6 +127,7 @@ function RuleRow({
         open={editing}
         onOpenChange={setEditing}
         categories={categories}
+        savingsGoals={savingsGoals}
         rule={rule}
       />
     </>
@@ -132,10 +137,12 @@ function RuleRow({
 export function RecurringRuleList({
   rules,
   categories,
+  savingsGoals,
   now,
 }: {
   rules: RuleWithCategory[];
   categories: Category[];
+  savingsGoals: SavingsGoalOption[];
   /** Unix ms timestamp, computed once server-side at page render. */
   now: number;
 }) {
@@ -170,7 +177,7 @@ export function RecurringRuleList({
               </TableHeader>
               <TableBody>
                 {rules.map((rule) => (
-                  <RuleRow key={rule.id} rule={rule} categories={categories} now={now} />
+                  <RuleRow key={rule.id} rule={rule} categories={categories} savingsGoals={savingsGoals} now={now} />
                 ))}
               </TableBody>
             </Table>
@@ -178,7 +185,7 @@ export function RecurringRuleList({
         </CardContent>
       </Card>
 
-      <RecurringRuleFormDialog open={creating} onOpenChange={setCreating} categories={categories} />
+      <RecurringRuleFormDialog open={creating} onOpenChange={setCreating} categories={categories} savingsGoals={savingsGoals} />
     </div>
   );
 }
