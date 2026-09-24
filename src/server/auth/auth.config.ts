@@ -1,4 +1,4 @@
-import NextAuth, { type DefaultSession } from "next-auth";
+import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { Plan } from "@prisma/client";
@@ -9,10 +9,17 @@ import { verifyPassword } from "./password";
 
 declare module "next-auth" {
   interface Session {
+    // Narrower than the library's default (which types email/name as
+    // optional, to fit providers that may not return one): this app is
+    // Credentials-only and always sets both at registration, so callers
+    // shouldn't have to null-check an email that's structurally guaranteed.
     user: {
       id: string;
       plan: Plan;
-    } & DefaultSession["user"];
+      name: string | null;
+      email: string;
+      image: string | null;
+    };
   }
   interface User {
     plan: Plan;

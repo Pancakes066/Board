@@ -1,26 +1,19 @@
 import { requireUser } from "@/server/auth/session";
-import { signOutAction } from "@/server/actions/account";
-import { Button } from "@/components/ui/button";
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AppMobileNav } from "@/components/layout/app-mobile-nav";
 
-// Temporary minimal shell: session guard + a way to sign out for testing.
-// Replaced by the real nav shell in the next milestone.
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
 
   return (
-    <div className="flex min-h-full flex-1 flex-col">
-      <header className="flex items-center justify-between border-b border-border px-6 py-3">
-        <span className="font-semibold tracking-tight text-primary">Board</span>
-        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-          <span>{user.email}</span>
-          <form action={signOutAction}>
-            <Button type="submit" variant="outline" size="sm">
-              Se déconnecter
-            </Button>
-          </form>
-        </div>
-      </header>
-      <main className="flex-1 px-6 py-6">{children}</main>
+    <div className="flex min-h-full flex-1">
+      <AppSidebar name={user.name} email={user.email} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <AppMobileNav name={user.name} email={user.email} />
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-8 md:py-8">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
