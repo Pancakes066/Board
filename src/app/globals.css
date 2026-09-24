@@ -9,8 +9,10 @@
  * Light is a coherent, accessible alternative (warm off-white + darker gold).
  * `--positive` / `--warning` are custom additions (not part of shadcn's base
  * token set): financial state (income vs expense, budget nearing its cap)
- * must stay readable at a glance and must never be confused with the gold
- * brand/accent color, so they are deliberately distinct hues.
+ * must stay readable at a glance, always paired with an icon/label (never
+ * color alone) since neither sits fully clear of the gold brand accent on
+ * a strict pairwise basis. `--chart-*` is a separate, validated categorical
+ * set for future multi-series charts — see the comment above its values.
  */
 
 :root {
@@ -40,11 +42,17 @@
   --input: #e5dfc8;
   --ring: #a3730a;
 
-  --chart-1: #a3730a;
-  --chart-2: #2563eb;
-  --chart-3: #15803d;
-  --chart-4: #dc2626;
-  --chart-5: #7c3aed;
+  /* Categorical chart palette — validated (see dataviz skill,
+   * scripts/validate_palette.js) against this app's card surface for
+   * adjacent-pair colorblind separation + contrast. Deliberately NOT tied
+   * to --primary: gold is a brand/CTA color, not a data-categorical one —
+   * mixing it into a multi-series chart reintroduces exactly the
+   * gold-vs-amber collision this palette was chosen to avoid. */
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-5: #e87ba4;
 }
 
 .dark {
@@ -72,11 +80,13 @@
   --input: #2a251e;
   --ring: #d4af37;
 
-  --chart-1: #d4af37;
-  --chart-2: #6ea8fe;
-  --chart-3: #4ade80;
-  --chart-4: #f87171;
-  --chart-5: #a78bfa;
+  /* Same rationale as :root — validated against this app's dark card
+   * surface (#151317), independent of --primary. */
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
 }
 
 @theme inline {

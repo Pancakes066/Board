@@ -48,6 +48,14 @@ export function nextPeriod({ year, month }: Period): Period {
   return month === 12 ? { year: year + 1, month: 1 } : { year, month: month + 1 };
 }
 
+export function previousPeriod({ year, month }: Period): Period {
+  return month === 1 ? { year: year - 1, month: 12 } : { year, month: month - 1 };
+}
+
+export function comparePeriods(a: Period, b: Period): number {
+  return a.year !== b.year ? a.year - b.year : a.month - b.month;
+}
+
 /**
  * Wraps Date.now() so call sites that need "the current instant" don't
  * read the clock directly inside a component's own body — the

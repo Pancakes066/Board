@@ -2,12 +2,8 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import type { Period } from "@/lib/utils/date";
-import { nextPeriod, MONTH_LABELS } from "@/lib/utils/date";
+import { nextPeriod, previousPeriod, MONTH_LABELS } from "@/lib/utils/date";
 import { Button } from "@/components/ui/button";
-
-function previousPeriod({ year, month }: Period): Period {
-  return month === 1 ? { year: year - 1, month: 12 } : { year, month: month - 1 };
-}
 
 function periodHref(period: Period): string {
   return `/transactions?year=${period.year}&month=${period.month}`;
