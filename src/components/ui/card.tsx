@@ -20,7 +20,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-header"
       className={cn(
-        "grid auto-rows-min grid-rows-[auto_auto] items-start gap-1 px-5 pt-5 has-[[data-slot=card-action]]:grid-cols-[1fr_auto]",
+        "grid auto-rows-min grid-rows-[auto_auto] items-start gap-1 px-6 pt-6 has-[[data-slot=card-action]]:grid-cols-[1fr_auto]",
         className,
       )}
       {...props}
@@ -59,14 +59,18 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
-  return <div data-slot="card-content" className={cn("px-5", className)} {...props} />;
+  // pb-5 unconditionally: most cards end with a CardContent and no
+  // CardFooter, so without this the content sits flush against the
+  // card's bottom border. The rare CardContent -> CardFooter case just
+  // gets a slightly larger (still intentional-looking) gap from it.
+  return <div data-slot="card-content" className={cn("px-6 pb-6", className)} {...props} />;
 }
 
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-footer"
-      className={cn("flex items-center px-5 pb-5", className)}
+      className={cn("flex items-center px-6 pb-6", className)}
       {...props}
     />
   );

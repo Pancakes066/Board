@@ -14,7 +14,7 @@ export function RegisterForm() {
 
   return (
     <Card>
-      <CardContent>
+      <CardContent className="pt-6">
         <form action={action} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="name">Nom</Label>
