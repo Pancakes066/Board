@@ -14,6 +14,21 @@ export function formatSignedCurrency(cents: number): string {
   return cents < 0 ? `-${formatted}` : `+${formatted}`;
 }
 
+const foreignFormatters = new Map<string, Intl.NumberFormat>();
+
+/** Same as `formatCurrency`, but for an arbitrary ISO currency code — used
+ * for ProjectExpense amounts in their own (possibly foreign) currency.
+ * Intl.NumberFormat already knows each currency's own decimal places (e.g.
+ * 0 for JPY), so no per-currency formatting rules are needed here. */
+export function formatCurrencyIn(cents: number, currencyCode: string): string {
+  let formatter = foreignFormatters.get(currencyCode);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat("fr-FR", { style: "currency", currency: currencyCode });
+    foreignFormatters.set(currencyCode, formatter);
+  }
+  return formatter.format(cents / 100);
+}
+
 /** Compact axis-tick label: "1,7k€" above 1000€, "45€" below — shared so
  * every chart's Y-axis converts cents the same way (a chart-local copy of
  * this once got the cents->euros->k division wrong by a factor of 100). */

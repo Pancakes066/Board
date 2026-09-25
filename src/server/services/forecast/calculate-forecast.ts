@@ -5,15 +5,24 @@ import type { FlowType, OccurrenceStatus, Prisma } from "@prisma/client";
 export type MonthAggregates = {
   forecastedIncome: number;
   forecastedFixedExpenses: number;
+  /** Sum of project-linked expenses (see ProjectExpense) for this period —
+   * known/planned like a fixed expense, just not recurring. Excluded from
+   * the "variable spend" bucket below so a reserved project line never
+   * gets double-counted as unpredictable discretionary spend. */
+  forecastedProjectExpenses: number;
   forecastedSavings: number;
   actualIncome: number;
   actualFixedExpenses: number;
+  actualProjectExpenses: number;
   actualVariableExpenses: number;
   actualSavings: number;
-  /** ActualFixedExpenses + ActualVariableExpenses. */
+  /** ActualFixedExpenses + ActualProjectExpenses + ActualVariableExpenses. */
   alreadySpent: number;
   /** ForecastedFixedExpenses - ActualFixedExpenses: planned, not yet paid. */
   reservedExpenses: number;
+  /** ForecastedProjectExpenses - ActualProjectExpenses: reserved for a
+   * project, not yet paid — money that isn't "freely available" either. */
+  reservedProjectExpenses: number;
   /** ForecastedSavings - ActualSavings: planned, not yet set aside. */
   reservedSavings: number;
 };
@@ -39,9 +48,11 @@ export async function getMonthAggregates(userId: string, period: Period): Promis
   const [
     forecastedIncome,
     forecastedFixedExpenses,
+    forecastedProjectExpenses,
     forecastedSavings,
     actualIncome,
     actualFixedExpenses,
+    actualProjectExpenses,
     actualVariableExpenses,
     actualSavings,
   ] = await Promise.all([
@@ -50,6 +61,11 @@ export async function getMonthAggregates(userId: string, period: Period): Promis
       ...periodWhere(userId, period, "EXPENSE"),
       status: { in: FORECASTED_STATUSES },
       recurringRuleId: { not: null },
+    }),
+    sumAmount({
+      ...periodWhere(userId, period, "EXPENSE"),
+      status: { in: FORECASTED_STATUSES },
+      projectExpenseId: { not: null },
     }),
     sumAmount({ ...periodWhere(userId, period, "SAVINGS"), status: { in: FORECASTED_STATUSES } }),
     sumAmount({ ...periodWhere(userId, period, "INCOME"), status: "COMPLETED" }),
@@ -61,7 +77,13 @@ export async function getMonthAggregates(userId: string, period: Period): Promis
     sumAmount({
       ...periodWhere(userId, period, "EXPENSE"),
       status: "COMPLETED",
+      projectExpenseId: { not: null },
+    }),
+    sumAmount({
+      ...periodWhere(userId, period, "EXPENSE"),
+      status: "COMPLETED",
       recurringRuleId: null,
+      projectExpenseId: null,
     }),
     sumAmount({ ...periodWhere(userId, period, "SAVINGS"), status: "COMPLETED" }),
   ]);
@@ -69,13 +91,16 @@ export async function getMonthAggregates(userId: string, period: Period): Promis
   return {
     forecastedIncome,
     forecastedFixedExpenses,
+    forecastedProjectExpenses,
     forecastedSavings,
     actualIncome,
     actualFixedExpenses,
+    actualProjectExpenses,
     actualVariableExpenses,
     actualSavings,
-    alreadySpent: actualFixedExpenses + actualVariableExpenses,
+    alreadySpent: actualFixedExpenses + actualProjectExpenses + actualVariableExpenses,
     reservedExpenses: forecastedFixedExpenses - actualFixedExpenses,
+    reservedProjectExpenses: forecastedProjectExpenses - actualProjectExpenses,
     reservedSavings: forecastedSavings - actualSavings,
   };
 }

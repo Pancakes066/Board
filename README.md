@@ -15,6 +15,11 @@ je veux épargner, combien puis-je réellement dépenser ?*
   précédent, détail des prévisions.
 - Budgets par catégorie avec barre de progression et seuil d'alerte.
 - Objectifs d'épargne (montant, date cible, contribution mensuelle suggérée).
+- Projets & Voyages : planifiez financièrement une dépense importante (voyage, achat,
+  événement…), avec budget détaillé par poste, montants en devise étrangère convertis
+  automatiquement (taux et date toujours affichés, jamais présentés comme temps réel),
+  lien vers un objectif d'épargne, et un résumé « puis-je me le permettre ? ». Un
+  convertisseur de devises autonome est aussi disponible sur la page.
 - Abonnements : vue dédiée avec coûts mensuel et annuel totaux.
 - Statistiques : répartition par catégorie, évolution sur plusieurs mois, fixe vs
   variable, dépense moyenne par jour.

@@ -42,6 +42,9 @@ export function ForecastBreakdown({ forecast }: { forecast: Forecast }) {
             Déjà arrivé
           </p>
           <Line label="Dépenses fixes payées" cents={forecast.actualFixedExpenses} />
+          {forecast.actualProjectExpenses > 0 && (
+            <Line label="Dépenses de projets payées" cents={forecast.actualProjectExpenses} />
+          )}
           <Line label="Dépenses variables effectuées" cents={forecast.actualVariableExpenses} />
           <div className="mt-1 border-t border-border pt-1.5">
             <Line label="Total déjà dépensé" cents={forecast.alreadySpent} emphasis />
@@ -52,6 +55,9 @@ export function ForecastBreakdown({ forecast }: { forecast: Forecast }) {
             Pas encore arrivé
           </p>
           <Line label="Dépenses fixes réservées" cents={forecast.reservedExpenses} />
+          {forecast.reservedProjectExpenses > 0 && (
+            <Line label="Dépenses de projets réservées" cents={forecast.reservedProjectExpenses} />
+          )}
           <Line label="Dépenses variables probables" cents={Math.max(projectedRemaining, 0)} />
           <Line label="Épargne réservée" cents={forecast.reservedSavings} />
         </div>

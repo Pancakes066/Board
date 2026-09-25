@@ -43,6 +43,19 @@ enum GoalStatus {
   ARCHIVED
 }
 
+enum ProjectType {
+  TRAVEL
+  PURCHASE
+  EVENT
+  MOVING
+  OTHER
+}
+
+enum ProjectExpenseStatus {
+  PLANNED
+  COMPLETED
+}
+
 // ============================================================
 // AUTH — standard Auth.js / Prisma adapter shape.
 // `Account` here = OAuth-provider link, NOT a financial account.
@@ -62,13 +75,15 @@ model User {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
-  accounts       Account[]
-  sessions       Session[]
-  categories     Category[]
-  recurringRules RecurringRule[]
-  transactions   Transaction[]
-  budgets        Budget[]
-  savingsGoals   SavingsGoal[]
+  accounts        Account[]
+  sessions        Session[]
+  categories      Category[]
+  recurringRules  RecurringRule[]
+  transactions    Transaction[]
+  budgets         Budget[]
+  savingsGoals    SavingsGoal[]
+  projects        Project[]
+  projectExpenses ProjectExpense[]
 }
 
 model Account {
@@ -164,27 +179,29 @@ model RecurringRule {
 // ============================================================
 
 model Transaction {
-  id              String           @id @default(cuid())
-  userId          String // denormalized — avoids joining through RecurringRule on hot queries
-  recurringRuleId String? // null = manual, one-off entry
-  type            FlowType
-  status          OccurrenceStatus @default(PLANNED)
-  amountCents     Int // effective amount — may override the parent rule's amount
-  categoryId      String
-  savingsGoalId   String?
-  sourceDate      DateTime // IMMUTABLE — rule-computed date, idempotency anchor
-  date            DateTime // mutable, user-facing/effective date (the override target)
-  periodYear      Int // aggregation bucket — derived from sourceDate, not date
-  periodMonth     Int // 1-12
-  isModified      Boolean          @default(false) // true once amount/date/category diverge from the rule
-  notes           String?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  id               String           @id @default(cuid())
+  userId           String // denormalized — avoids joining through RecurringRule on hot queries
+  recurringRuleId  String? // null = manual, one-off entry
+  type             FlowType
+  status           OccurrenceStatus @default(PLANNED)
+  amountCents      Int // effective amount — may override the parent rule's amount
+  categoryId       String
+  savingsGoalId    String?
+  projectExpenseId String?          @unique // set when this is a reserved/paid project budget line
+  sourceDate       DateTime // IMMUTABLE — rule-computed date, idempotency anchor
+  date             DateTime // mutable, user-facing/effective date (the override target)
+  periodYear       Int // aggregation bucket — derived from sourceDate, not date
+  periodMonth      Int // 1-12
+  isModified       Boolean          @default(false) // true once amount/date/category diverge from the rule
+  notes            String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  recurringRule RecurringRule? @relation(fields: [recurringRuleId], references: [id], onDelete: Cascade)
-  category      Category       @relation(fields: [categoryId], references: [id])
-  savingsGoal   SavingsGoal?   @relation(fields: [savingsGoalId], references: [id])
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recurringRule  RecurringRule?  @relation(fields: [recurringRuleId], references: [id], onDelete: Cascade)
+  category       Category        @relation(fields: [categoryId], references: [id])
+  savingsGoal    SavingsGoal?    @relation(fields: [savingsGoalId], references: [id])
+  projectExpense ProjectExpense? @relation(fields: [projectExpenseId], references: [id], onDelete: Cascade)
 
   // NULLs are distinct in Postgres unique indexes, so manual transactions
   // (recurringRuleId = null) never collide with each other here — this
@@ -232,7 +249,85 @@ model SavingsGoal {
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   recurringRules RecurringRule[]
   transactions   Transaction[]
+  project        Project?
   // currentAmountCents is intentionally NOT a column — computed from
   // initialAmountCents + completed linked transactions. See
   // src/server/services/savings/goal-projection.ts.
+}
+
+// ============================================================
+// PROJECTS — one-off financial plans (trips, purchases, events...).
+// Reuses SavingsGoal for the "how much saved / suggested monthly
+// contribution" math (via savingsGoalId) and Transaction for real money
+// movement (via ProjectExpense.transaction) — no parallel bookkeeping.
+// ============================================================
+
+model Project {
+  id                    String      @id @default(cuid())
+  userId                String
+  type                  ProjectType
+  name                  String
+  emoji                 String? // defaults by type in the UI when unset
+  description           String?
+  estimatedAmountCents  Int
+  currency              String      @default("EUR") // display currency for the target budget
+  targetDate            DateTime? // "date prévue"
+  deadlineDate          DateTime? // "date limite" — distinct, optional hard cutoff
+  budgetSafetyMarginPct Int? // recommended-budget cushion, e.g. 10 = +10%
+  fxSafetyMarginPct     Int? // exchange-rate cushion for foreign-currency lines
+  savingsGoalId         String?     @unique
+  // Travel-mode fields — null unless type = TRAVEL
+  destination           String?
+  travelStartDate       DateTime?
+  travelEndDate         DateTime?
+  travelerCount         Int?
+  notes                 String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  savingsGoal SavingsGoal?     @relation(fields: [savingsGoalId], references: [id])
+  expenses    ProjectExpense[]
+
+  @@index([userId])
+}
+
+model ProjectExpense {
+  id                   String               @id @default(cuid())
+  projectId            String
+  userId               String // denormalized, same convention as Transaction
+  label                String // "Transport", "Hébergement"... free text, like Category
+  emoji                String?
+  amountCents          Int // amount in the line's own (possibly foreign) currency
+  currency             String               @default("EUR")
+  convertedAmountCents Int? // home-currency (EUR) snapshot taken at entry time
+  exchangeRate         Float? // rate used for that snapshot
+  convertedAt          DateTime?
+  plannedDate          DateTime?
+  status               ProjectExpenseStatus @default(PLANNED)
+  note                 String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction Transaction?
+
+  @@index([projectId])
+}
+
+// ============================================================
+// EXCHANGE RATES — a small cache/fallback in front of a live FX API.
+// Global (not per-user): rates aren't user-specific. Every read carries
+// its own fetchedAt, so the UI never claims a cached rate is live.
+// ============================================================
+
+model ExchangeRate {
+  id            String   @id @default(cuid())
+  baseCurrency  String
+  quoteCurrency String
+  rate          Float
+  fetchedAt     DateTime @default(now())
+
+  @@unique([baseCurrency, quoteCurrency])
 }

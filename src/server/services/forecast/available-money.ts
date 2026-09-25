@@ -9,6 +9,7 @@ async function sumVariableExpenses(userId: string, period: Period): Promise<numb
       type: "EXPENSE",
       status: "COMPLETED",
       recurringRuleId: null,
+      projectExpenseId: null, // reserved project spend isn't "variable" — it's known/planned
       periodYear: period.year,
       periodMonth: period.month,
     },
@@ -26,6 +27,7 @@ async function hasEnoughHistory(userId: string, now: Date): Promise<boolean> {
       type: "EXPENSE",
       status: "COMPLETED",
       recurringRuleId: null,
+      projectExpenseId: null,
       OR: [
         { periodYear: { lt: current.year } },
         { periodYear: current.year, periodMonth: { lt: current.month } },
@@ -105,7 +107,8 @@ export async function getForecast(userId: string, period: Period, now: Date): Pr
     projectedVariableSpend(userId, period, now),
   ]);
 
-  const totalForecastedExpenses = aggregates.forecastedFixedExpenses + projected;
+  const totalForecastedExpenses =
+    aggregates.forecastedFixedExpenses + aggregates.forecastedProjectExpenses + projected;
   const available = aggregates.forecastedIncome - totalForecastedExpenses - aggregates.forecastedSavings;
 
   return {

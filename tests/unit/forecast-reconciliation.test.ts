@@ -136,4 +136,57 @@ describe("getForecast reconciliation", () => {
     const forecast = await getForecast(user.id, period, now);
     expect(forecast.available).toBe(68000); // 680,00 €
   });
+
+  it("counts a reserved project expense as forecasted, not as variable spend", async () => {
+    const { user, category, cleanup: c } = await createTestUser();
+    cleanup = c;
+    const now = new Date(Date.UTC(2026, 8, 24));
+    const period = periodOf(now);
+
+    await prisma.recurringRule.create({
+      data: {
+        userId: user.id,
+        type: "INCOME",
+        name: "Salaire",
+        amountCents: 170000,
+        frequency: "MONTHLY",
+        dayOfMonth: 1,
+        startDate: new Date(Date.UTC(2020, 0, 1)),
+        categoryId: category.id,
+      },
+    });
+    await generateOccurrencesForPeriod(user.id, period);
+
+    const project = await prisma.project.create({
+      data: { userId: user.id, type: "TRAVEL", name: "Voyage au Japon", estimatedAmountCents: 250000 },
+    });
+    const expense = await prisma.projectExpense.create({
+      data: { projectId: project.id, userId: user.id, label: "Billets", amountCents: 85000 },
+    });
+    const reservedDate = new Date(Date.UTC(2026, 8, 15));
+    await prisma.transaction.create({
+      data: {
+        userId: user.id,
+        type: "EXPENSE",
+        status: "PLANNED",
+        amountCents: 85000,
+        categoryId: category.id,
+        projectExpenseId: expense.id,
+        sourceDate: reservedDate,
+        date: reservedDate,
+        periodYear: period.year,
+        periodMonth: period.month,
+      },
+    });
+
+    const forecast = await getForecast(user.id, period, now);
+
+    expect(forecast.forecastedProjectExpenses).toBe(85000);
+    expect(forecast.reservedProjectExpenses).toBe(85000); // planned, nothing paid yet
+    // The reserved flight must not also inflate the "unpredictable variable
+    // spend" projection — it's known, not guessed.
+    expect(forecast.projectedVariableSpend).toBe(0);
+    expect(forecast.totalForecastedExpenses).toBe(85000);
+    expect(forecast.available).toBe(170000 - 85000 - 0);
+  });
 });
