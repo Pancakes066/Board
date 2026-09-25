@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -25,8 +26,11 @@ export type GoalFormValues = {
   emoji: string | null;
   targetAmountCents: number;
   initialAmountCents: number;
+  accountId: string | null;
   targetDate: Date | null;
 };
+
+type AccountOption = { id: string; name: string };
 
 function toDateInputValue(date: Date | null): string {
   return date ? date.toISOString().slice(0, 10) : "";
@@ -34,10 +38,12 @@ function toDateInputValue(date: Date | null): string {
 
 function GoalForm({
   goal,
+  accounts,
   onSuccess,
   onCancel,
 }: {
   goal?: GoalFormValues;
+  accounts: AccountOption[];
   onSuccess: () => void;
   onCancel: () => void;
 }) {
@@ -88,6 +94,25 @@ function GoalForm({
           />
         </div>
       </div>
+      {accounts.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="accountId">Compte associé (optionnel)</Label>
+          <Select name="accountId" defaultValue={goal?.accountId ?? "__none__"}>
+            <SelectTrigger id="accountId" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Aucun compte spécifique</SelectItem>
+              {accounts.map((a) => (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="targetDate">Date cible (optionnel)</Label>
         <Input id="targetDate" name="targetDate" type="date" defaultValue={toDateInputValue(goal?.targetDate ?? null)} />
@@ -109,10 +134,12 @@ export function GoalFormDialog({
   open,
   onOpenChange,
   goal,
+  accounts = [],
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   goal?: GoalFormValues;
+  accounts?: AccountOption[];
 }) {
   const isEdit = Boolean(goal);
 
@@ -124,7 +151,7 @@ export function GoalFormDialog({
           <DialogDescription>Combien voulez-vous mettre de côté, et pour quand ?</DialogDescription>
         </DialogHeader>
         {open && (
-          <GoalForm key={goal?.id ?? "create"} goal={goal} onSuccess={() => onOpenChange(false)} onCancel={() => onOpenChange(false)} />
+          <GoalForm key={goal?.id ?? "create"} goal={goal} accounts={accounts} onSuccess={() => onOpenChange(false)} onCancel={() => onOpenChange(false)} />
         )}
       </DialogContent>
     </Dialog>

@@ -26,6 +26,10 @@ export const recurringRuleSchema = z
       (v) => (v === "" || v === "none" || v === null ? undefined : v),
       z.string().optional(),
     ),
+    accountId: z.preprocess(
+      (v) => (v === "" || v === "__none__" || v === null ? undefined : v),
+      z.string().optional(),
+    ),
     startDate: z.coerce.date("Date de début invalide."),
     endDate: z.preprocess(
       (v) => (v === "" ? undefined : v),

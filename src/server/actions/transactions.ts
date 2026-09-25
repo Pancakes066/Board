@@ -15,6 +15,7 @@ function parseManualInput(formData: FormData) {
     type: formData.get("type"),
     amountCents: formData.get("amount"),
     categoryId: formData.get("categoryId"),
+    accountId: formData.get("accountId"),
     date: formData.get("date"),
     status: formData.get("status"),
     notes: formData.get("notes"),
@@ -71,6 +72,7 @@ export async function updateOccurrenceAction(
   const parsed = occurrenceOverrideSchema.safeParse({
     amountCents: formData.get("amount"),
     categoryId: formData.get("categoryId"),
+    accountId: formData.get("accountId"),
     date: formData.get("date"),
     notes: formData.get("notes"),
   });

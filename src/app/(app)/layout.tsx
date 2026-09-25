@@ -1,6 +1,7 @@
 import { requireUser } from "@/server/auth/session";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppMobileNav } from "@/components/layout/app-mobile-nav";
+import { ReminderNotifier } from "@/components/reminders/reminder-notifier";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
@@ -14,6 +15,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {children}
         </main>
       </div>
+      <ReminderNotifier />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import type { Category, RecurringRule } from "@prisma/client";
 
 type SavingsGoalOption = { id: string; name: string; emoji: string | null };
+type AccountOption = { id: string; name: string };
 
 import {
   deleteRecurringRuleAction,
@@ -49,11 +50,13 @@ function RuleRow({
   rule,
   categories,
   savingsGoals,
+  accounts,
   now,
 }: {
   rule: RuleWithCategory;
   categories: Category[];
   savingsGoals: SavingsGoalOption[];
+  accounts: AccountOption[];
   now: number;
 }) {
   const [editing, setEditing] = useState(false);
@@ -128,6 +131,7 @@ function RuleRow({
         onOpenChange={setEditing}
         categories={categories}
         savingsGoals={savingsGoals}
+        accounts={accounts}
         rule={rule}
       />
     </>
@@ -138,11 +142,13 @@ export function RecurringRuleList({
   rules,
   categories,
   savingsGoals,
+  accounts = [],
   now,
 }: {
   rules: RuleWithCategory[];
   categories: Category[];
   savingsGoals: SavingsGoalOption[];
+  accounts?: AccountOption[];
   /** Unix ms timestamp, computed once server-side at page render. */
   now: number;
 }) {
@@ -180,7 +186,7 @@ export function RecurringRuleList({
               </TableHeader>
               <TableBody>
                 {rules.map((rule) => (
-                  <RuleRow key={rule.id} rule={rule} categories={categories} savingsGoals={savingsGoals} now={now} />
+                  <RuleRow key={rule.id} rule={rule} categories={categories} savingsGoals={savingsGoals} accounts={accounts} now={now} />
                 ))}
               </TableBody>
             </Table>
@@ -188,7 +194,7 @@ export function RecurringRuleList({
         </CardContent>
       </Card>
 
-      <RecurringRuleFormDialog open={creating} onOpenChange={setCreating} categories={categories} savingsGoals={savingsGoals} />
+      <RecurringRuleFormDialog open={creating} onOpenChange={setCreating} categories={categories} savingsGoals={savingsGoals} accounts={accounts} />
     </div>
   );
 }

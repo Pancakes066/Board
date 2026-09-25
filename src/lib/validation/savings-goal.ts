@@ -17,6 +17,10 @@ export const savingsGoalSchema = z.object({
     .transform((v) => (v ? v : undefined)),
   targetAmountCents: amountToCents,
   initialAmountCents: optionalAmountToCentsAllowZero,
+  accountId: z.preprocess(
+    (v) => (v === "" || v === "__none__" || v === null ? undefined : v),
+    z.string().optional(),
+  ),
   targetDate: z.preprocess(
     (v) => (v === "" ? undefined : v),
     z.coerce.date("Date invalide.").optional(),

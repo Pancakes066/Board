@@ -30,7 +30,7 @@ import {
 import { formatCurrency } from "@/lib/utils/currency";
 import { formatDate } from "@/lib/utils/date";
 import { cn } from "@/lib/utils/cn";
-import { TransactionFormDialog, type TransactionFormValues } from "./transaction-form-dialog";
+import { TransactionFormDialog, type TransactionFormValues, type AccountOption } from "./transaction-form-dialog";
 
 type TransactionWithRelations = Transaction & {
   category: Category;
@@ -61,6 +61,7 @@ function toFormValues(t: TransactionWithRelations): TransactionFormValues {
     type: t.type,
     amountCents: t.amountCents,
     categoryId: t.categoryId,
+    accountId: t.accountId,
     date: t.date,
     status: t.status,
     notes: t.notes,
@@ -72,9 +73,11 @@ function toFormValues(t: TransactionWithRelations): TransactionFormValues {
 function TransactionRow({
   transaction,
   categories,
+  accounts,
 }: {
   transaction: TransactionWithRelations;
   categories: Category[];
+  accounts: AccountOption[];
 }) {
   const [editing, setEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -171,6 +174,7 @@ function TransactionRow({
         open={editing}
         onOpenChange={setEditing}
         categories={categories}
+        accounts={accounts}
         transaction={toFormValues(transaction)}
       />
     </>
@@ -187,9 +191,11 @@ const STATUS_FILTERS = [
 export function TransactionList({
   transactions,
   categories,
+  accounts = [],
 }: {
   transactions: TransactionWithRelations[];
   categories: Category[];
+  accounts?: AccountOption[];
 }) {
   const [statusFilter, setStatusFilter] = useState<(typeof STATUS_FILTERS)[number]["value"]>("ALL");
   const [creating, setCreating] = useState(false);
@@ -236,7 +242,7 @@ export function TransactionList({
               </TableHeader>
               <TableBody>
                 {filtered.map((t) => (
-                  <TransactionRow key={t.id} transaction={t} categories={categories} />
+                  <TransactionRow key={t.id} transaction={t} categories={categories} accounts={accounts} />
                 ))}
               </TableBody>
             </Table>
@@ -244,7 +250,7 @@ export function TransactionList({
         </CardContent>
       </Card>
 
-      <TransactionFormDialog open={creating} onOpenChange={setCreating} categories={categories} />
+      <TransactionFormDialog open={creating} onOpenChange={setCreating} categories={categories} accounts={accounts} />
     </div>
   );
 }

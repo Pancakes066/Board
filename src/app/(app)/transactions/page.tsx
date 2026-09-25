@@ -3,6 +3,7 @@ import { UpsellCard } from "@/components/upsell-card";
 import { requireUser } from "@/server/auth/session";
 import { listTransactionsForPeriod } from "@/server/services/transactions/transactions";
 import { listCategoriesForUser } from "@/server/services/categories/categories";
+import { listAccountOptions } from "@/server/services/accounts/accounts";
 import { canUse } from "@/server/entitlements/entitlements";
 import { FEATURES, FREE_LIMITS } from "@/server/entitlements/plans";
 import { periodOf, monthsBetweenPeriods, type Period } from "@/lib/utils/date";
@@ -33,9 +34,10 @@ export default async function TransactionsPage({ searchParams }: PageProps<"/tra
   const withinFreeHistory = monthsBack <= FREE_LIMITS.historyMonths;
   const hasUnlimitedHistory = withinFreeHistory || (await canUse(FEATURES.UNLIMITED_HISTORY));
 
-  const [transactions, categories] = await Promise.all([
+  const [transactions, categories, accounts] = await Promise.all([
     hasUnlimitedHistory ? listTransactionsForPeriod(user.id, period) : Promise.resolve([]),
     listCategoriesForUser(user.id),
+    listAccountOptions(user.id),
   ]);
 
   return (
@@ -50,7 +52,7 @@ export default async function TransactionsPage({ searchParams }: PageProps<"/tra
         <GenerateMonthButton period={period} />
       </div>
       {hasUnlimitedHistory ? (
-        <TransactionList transactions={transactions} categories={categories} />
+        <TransactionList transactions={transactions} categories={categories} accounts={accounts} />
       ) : (
         <UpsellCard message="L'historique au-delà de 3 mois fait partie de Board Premium. Passez à Premium pour consulter et modifier tout votre historique." />
       )}

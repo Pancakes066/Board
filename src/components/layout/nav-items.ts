@@ -8,6 +8,9 @@ import {
   BarChart3,
   Settings,
   Rocket,
+  Calendar,
+  Landmark,
+  Bell,
 } from "lucide-react";
 
 export type NavItem = {
@@ -21,10 +24,13 @@ export type NavItem = {
 export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
+  { href: "/calendar", label: "Calendrier", icon: Calendar },
   { href: "/budgets", label: "Budgets", icon: Wallet },
   { href: "/savings", label: "Épargne", icon: Target },
+  { href: "/accounts", label: "Comptes", icon: Landmark },
   { href: "/projects", label: "Projets", icon: Rocket },
   { href: "/subscriptions", label: "Abonnements", icon: Repeat },
   { href: "/statistics", label: "Statistiques", icon: BarChart3 },
+  { href: "/reminders", label: "Rappels", icon: Bell },
   { href: "/settings", label: "Paramètres", icon: Settings },
 ];

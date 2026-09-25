@@ -14,6 +14,7 @@ function parseGoalInput(formData: FormData) {
     emoji: formData.get("emoji") || undefined,
     targetAmountCents: formData.get("targetAmount"),
     initialAmountCents: formData.get("initialAmount"),
+    accountId: formData.get("accountId"),
     targetDate: formData.get("targetDate"),
   });
 }

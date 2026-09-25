@@ -17,7 +17,9 @@ export async function createTestUser() {
 
   async function cleanup() {
     await prisma.transaction.deleteMany({ where: { userId: user.id } });
+    await prisma.accountTransfer.deleteMany({ where: { userId: user.id } });
     await prisma.recurringRule.deleteMany({ where: { userId: user.id } });
+    await prisma.financialAccount.deleteMany({ where: { userId: user.id } });
     await prisma.category.deleteMany({ where: { userId: user.id } });
     await prisma.user.delete({ where: { id: user.id } });
   }

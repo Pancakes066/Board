@@ -10,6 +10,7 @@ export type SavingsGoalWithProgress = {
   currentAmountCents: number;
   targetDate: Date | null;
   status: "ACTIVE" | "ACHIEVED" | "ARCHIVED";
+  accountId: string | null;
   progressPct: number;
   /** null when there's no target date to project against. */
   suggestedMonthlyContributionCents: number | null;
@@ -30,6 +31,7 @@ function withProgress(
     initialAmountCents: number;
     targetDate: Date | null;
     status: "ACTIVE" | "ACHIEVED" | "ARCHIVED";
+    accountId: string | null;
   },
   contributedCents: number,
   now: Date,
@@ -46,6 +48,7 @@ function withProgress(
     currentAmountCents,
     targetDate: goal.targetDate,
     status: goal.status,
+    accountId: goal.accountId,
     progressPct:
       goal.targetAmountCents > 0
         ? Math.round((currentAmountCents / goal.targetAmountCents) * 1000) / 10
@@ -105,6 +108,7 @@ export async function createSavingsGoal(userId: string, input: SavingsGoalInput)
       emoji: input.emoji,
       targetAmountCents: input.targetAmountCents,
       initialAmountCents: input.initialAmountCents ?? 0,
+      accountId: input.accountId ?? null,
       targetDate: input.targetDate,
     },
   });
@@ -119,6 +123,7 @@ export async function updateSavingsGoal(userId: string, goalId: string, input: S
       emoji: input.emoji,
       targetAmountCents: input.targetAmountCents,
       initialAmountCents: input.initialAmountCents ?? 0,
+      accountId: input.accountId ?? null,
       targetDate: input.targetDate,
     },
   });

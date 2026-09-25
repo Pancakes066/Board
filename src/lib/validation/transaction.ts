@@ -2,10 +2,16 @@ import { z } from "zod";
 
 import { amountToCents } from "./shared";
 
+const optionalAccountId = z.preprocess(
+  (v) => (v === "" || v === null || v === undefined || v === "__none__" ? undefined : v),
+  z.string().optional(),
+);
+
 export const manualTransactionSchema = z.object({
   type: z.enum(["INCOME", "EXPENSE", "SAVINGS"]),
   amountCents: amountToCents,
   categoryId: z.string().min(1, "Catégorie requise."),
+  accountId: optionalAccountId,
   date: z.coerce.date("Date invalide."),
   status: z.enum(["PLANNED", "COMPLETED"]),
   notes: z.preprocess(
@@ -21,6 +27,7 @@ export type ManualTransactionInput = z.infer<typeof manualTransactionSchema>;
 export const occurrenceOverrideSchema = z.object({
   amountCents: amountToCents,
   categoryId: z.string().min(1, "Catégorie requise."),
+  accountId: optionalAccountId,
   date: z.coerce.date("Date invalide."),
   notes: z.preprocess(
     (v) => (v === "" ? undefined : v),

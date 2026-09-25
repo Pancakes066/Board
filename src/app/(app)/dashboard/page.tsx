@@ -4,10 +4,12 @@ import { requireUser } from "@/server/auth/session";
 import { generateRollingWindow } from "@/server/services/recurrence/sync-forward";
 import { getForecast } from "@/server/services/forecast/available-money";
 import { getCurrentBalance, getBalanceHistory } from "@/server/services/forecast/balance";
+import { listAccountsWithBalance, totalsByCurrency } from "@/server/services/accounts/accounts";
 import { currentTimestamp, periodOf, previousPeriod, MONTH_LABELS } from "@/lib/utils/date";
 import { StatTile, type Delta } from "./stat-tile";
 import { BalanceChart } from "./balance-chart";
 import { ForecastBreakdown } from "./forecast-breakdown";
+import { AccountsSummaryCard } from "./accounts-summary-card";
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -21,12 +23,14 @@ export default async function DashboardPage() {
   // month" yet.
   await generateRollingWindow(user.id, now);
 
-  const [forecast, lastMonthForecast, balance, balanceHistory] = await Promise.all([
+  const [forecast, lastMonthForecast, balance, balanceHistory, accounts] = await Promise.all([
     getForecast(user.id, period, now),
     getForecast(user.id, lastMonth, now),
     getCurrentBalance(user.id, now),
     getBalanceHistory(user.id, now),
+    listAccountsWithBalance(user.id, now),
   ]);
+  const accountTotals = totalsByCurrency(accounts);
 
   function delta(current: number, previous: number, upIsGood: boolean): Delta {
     return { currentCents: current, previousCents: previous, upIsGood };
@@ -93,6 +97,8 @@ export default async function DashboardPage() {
       </Card>
 
       <ForecastBreakdown forecast={forecast} />
+
+      {accounts.length > 0 && <AccountsSummaryCard accounts={accounts} totals={accountTotals} />}
     </div>
   );
 }

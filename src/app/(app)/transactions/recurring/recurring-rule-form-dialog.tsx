@@ -30,6 +30,7 @@ import {
 import { WEEKDAY_LABELS, MONTH_LABELS } from "@/lib/utils/date";
 
 type SavingsGoalOption = { id: string; name: string; emoji: string | null };
+type AccountOption = { id: string; name: string };
 
 type RuleFormValues = {
   id: string;
@@ -42,6 +43,7 @@ type RuleFormValues = {
   dayOfWeek: number | null;
   categoryId: string;
   savingsGoalId: string | null;
+  accountId: string | null;
   startDate: Date;
   endDate: Date | null;
   isSubscription: boolean;
@@ -55,12 +57,14 @@ function toDateInputValue(date: Date | null | undefined): string {
 function RecurringRuleForm({
   categories,
   savingsGoals,
+  accounts,
   rule,
   onSuccess,
   onCancel,
 }: {
   categories: Category[];
   savingsGoals: SavingsGoalOption[];
+  accounts: AccountOption[];
   rule?: RuleFormValues;
   onSuccess: () => void;
   onCancel: () => void;
@@ -144,6 +148,25 @@ function RecurringRuleForm({
               {savingsGoals.map((g) => (
                 <SelectItem key={g.id} value={g.id}>
                   {g.emoji} {g.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {accounts.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="accountId">Compte (optionnel)</Label>
+          <Select name="accountId" defaultValue={rule?.accountId ?? "__none__"}>
+            <SelectTrigger id="accountId" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Aucun compte spécifique</SelectItem>
+              {accounts.map((a) => (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -266,12 +289,14 @@ export function RecurringRuleFormDialog({
   onOpenChange,
   categories,
   savingsGoals,
+  accounts = [],
   rule,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categories: Category[];
   savingsGoals: SavingsGoalOption[];
+  accounts?: AccountOption[];
   rule?: RuleFormValues;
 }) {
   const isEdit = Boolean(rule);
@@ -290,6 +315,7 @@ export function RecurringRuleFormDialog({
             key={rule?.id ?? "create"}
             categories={categories}
             savingsGoals={savingsGoals}
+            accounts={accounts}
             rule={rule}
             onSuccess={() => onOpenChange(false)}
             onCancel={() => onOpenChange(false)}

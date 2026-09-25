@@ -30,6 +30,7 @@ export async function createManualTransaction(userId: string, input: ManualTrans
       status: input.status,
       amountCents: input.amountCents,
       categoryId: input.categoryId,
+      accountId: input.accountId ?? null,
       sourceDate: input.date,
       date: input.date,
       periodYear: period.year,
@@ -67,6 +68,7 @@ export async function updateManualTransaction(
       status: input.status,
       amountCents: input.amountCents,
       categoryId: input.categoryId,
+      accountId: input.accountId ?? null,
       sourceDate: input.date,
       date: input.date,
       periodYear: period.year,
@@ -106,6 +108,7 @@ export async function updateOccurrence(
     data: {
       amountCents: input.amountCents,
       categoryId: input.categoryId,
+      accountId: input.accountId ?? null,
       date: input.date,
       notes: input.notes,
       isModified: true,

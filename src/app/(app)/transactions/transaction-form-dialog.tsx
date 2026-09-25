@@ -34,12 +34,15 @@ export type TransactionFormValues = {
   type: FlowType;
   amountCents: number;
   categoryId: string;
+  accountId?: string | null;
   date: Date;
   status: OccurrenceStatus;
   notes: string | null;
   recurringRuleId: string | null;
   ruleName?: string;
 };
+
+export type AccountOption = { id: string; name: string };
 
 const TYPE_LABEL: Record<FlowType, string> = {
   INCOME: "Revenu",
@@ -53,11 +56,13 @@ function toDateInputValue(date: Date): string {
 
 function TransactionForm({
   categories,
+  accounts,
   transaction,
   onSuccess,
   onCancel,
 }: {
   categories: Category[];
+  accounts: AccountOption[];
   transaction?: TransactionFormValues;
   onSuccess: () => void;
   onCancel: () => void;
@@ -160,6 +165,25 @@ function TransactionForm({
         </Select>
       </div>
 
+      {accounts.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="accountId">Compte (optionnel)</Label>
+          <Select name="accountId" defaultValue={transaction?.accountId ?? "__none__"}>
+            <SelectTrigger id="accountId" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Aucun compte spécifique</SelectItem>
+              {accounts.map((a) => (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="notes">Note (optionnel)</Label>
         <Input id="notes" name="notes" defaultValue={transaction?.notes ?? ""} maxLength={200} />
@@ -182,11 +206,13 @@ export function TransactionFormDialog({
   open,
   onOpenChange,
   categories,
+  accounts = [],
   transaction,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categories: Category[];
+  accounts?: AccountOption[];
   transaction?: TransactionFormValues;
 }) {
   const isEdit = Boolean(transaction);
@@ -206,6 +232,7 @@ export function TransactionFormDialog({
           <TransactionForm
             key={transaction?.id ?? "create"}
             categories={categories}
+            accounts={accounts}
             transaction={transaction}
             onSuccess={() => onOpenChange(false)}
             onCancel={() => onOpenChange(false)}

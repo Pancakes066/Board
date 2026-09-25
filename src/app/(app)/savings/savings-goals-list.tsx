@@ -10,12 +10,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { GoalCard } from "./goal-card";
 import { GoalFormDialog } from "./goal-form-dialog";
 
+type AccountOption = { id: string; name: string };
+
 export function SavingsGoalsList({
   goals,
   categories,
+  accounts = [],
 }: {
   goals: SavingsGoalWithProgress[];
   categories: Category[];
+  accounts?: AccountOption[];
 }) {
   const [creating, setCreating] = useState(false);
 
@@ -39,12 +43,12 @@ export function SavingsGoalsList({
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {goals.map((goal) => (
-            <GoalCard key={goal.id} goal={goal} categories={categories} />
+            <GoalCard key={goal.id} goal={goal} categories={categories} accounts={accounts} />
           ))}
         </div>
       )}
 
-      <GoalFormDialog open={creating} onOpenChange={setCreating} />
+      <GoalFormDialog open={creating} onOpenChange={setCreating} accounts={accounts} />
     </div>
   );
 }

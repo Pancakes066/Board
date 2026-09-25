@@ -15,12 +15,16 @@ import { formatDate } from "@/lib/utils/date";
 import { GoalFormDialog, type GoalFormValues } from "./goal-form-dialog";
 import { ContributionDialog } from "./contribution-dialog";
 
+type AccountOption = { id: string; name: string };
+
 export function GoalCard({
   goal,
   categories,
+  accounts = [],
 }: {
   goal: SavingsGoalWithProgress;
   categories: Category[];
+  accounts?: AccountOption[];
 }) {
   const [editing, setEditing] = useState(false);
   const [contributing, setContributing] = useState(false);
@@ -42,6 +46,7 @@ export function GoalCard({
     emoji: goal.emoji,
     targetAmountCents: goal.targetAmountCents,
     initialAmountCents: goal.initialAmountCents,
+    accountId: goal.accountId,
     targetDate: goal.targetDate,
   };
 
@@ -105,7 +110,7 @@ export function GoalCard({
           </Button>
         </CardContent>
       </Card>
-      <GoalFormDialog open={editing} onOpenChange={setEditing} goal={formValues} />
+      <GoalFormDialog open={editing} onOpenChange={setEditing} goal={formValues} accounts={accounts} />
       <ContributionDialog
         open={contributing}
         onOpenChange={setContributing}
