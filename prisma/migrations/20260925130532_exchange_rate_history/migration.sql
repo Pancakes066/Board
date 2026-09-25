@@ -1,6 +1,12 @@
 -- DropIndex
 DROP INDEX "ExchangeRate_baseCurrency_quoteCurrency_key";
 
+-- ExchangeRate is a disposable cache (never user data) — any row here
+-- predates the new "date" column and gets refetched transparently on next
+-- use, so clearing it is safe and avoids a NOT NULL backfill problem on
+-- databases that already cached a rate under the old schema.
+TRUNCATE "ExchangeRate";
+
 -- AlterTable
 ALTER TABLE "ExchangeRate" ADD COLUMN     "date" TIMESTAMP(3) NOT NULL;
 
