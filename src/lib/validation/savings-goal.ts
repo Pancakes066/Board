@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-import { amountToCents } from "./shared";
+import { amountToCents, amountToCentsAllowZero } from "./shared";
 
-const optionalAmountToCents = z.preprocess(
+const optionalAmountToCentsAllowZero = z.preprocess(
   (v) => (v === "" || v === null || v === undefined ? undefined : v),
-  amountToCents.optional(),
+  amountToCentsAllowZero.optional(),
 );
 
 export const savingsGoalSchema = z.object({
@@ -16,7 +16,7 @@ export const savingsGoalSchema = z.object({
     .optional()
     .transform((v) => (v ? v : undefined)),
   targetAmountCents: amountToCents,
-  initialAmountCents: optionalAmountToCents,
+  initialAmountCents: optionalAmountToCentsAllowZero,
   targetDate: z.preprocess(
     (v) => (v === "" ? undefined : v),
     z.coerce.date("Date invalide.").optional(),
