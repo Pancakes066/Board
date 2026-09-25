@@ -322,12 +322,17 @@ model ProjectExpense {
 // its own fetchedAt, so the UI never claims a cached rate is live.
 // ============================================================
 
+// Append-only: one row per (pair, published date), not overwritten in
+// place — so this also serves as a rate history (7d/30d/1y evolution
+// charts can query it directly later) without a separate table.
 model ExchangeRate {
   id            String   @id @default(cuid())
   baseCurrency  String
   quoteCurrency String
   rate          Float
-  fetchedAt     DateTime @default(now())
+  date          DateTime // the date this rate is FOR, per the source — not our fetch time
+  fetchedAt     DateTime @default(now()) // when WE retrieved it, for cache-freshness bookkeeping
 
-  @@unique([baseCurrency, quoteCurrency])
+  @@unique([baseCurrency, quoteCurrency, date])
+  @@index([baseCurrency, quoteCurrency, date])
 }

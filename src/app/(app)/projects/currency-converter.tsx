@@ -89,13 +89,21 @@ export function CurrencyConverter() {
         {state && !state.ok && <p className="mt-3 text-sm text-destructive">{state.error}</p>}
         {state?.ok && (
           <div className="mt-4 rounded-lg border border-border bg-muted/30 p-3">
+            {state.stale && (
+              <p className="mb-2 text-sm text-warning">
+                ⚠️ Taux actuellement indisponible — dernier taux connu affiché ci-dessous.
+              </p>
+            )}
             <p className="text-xl font-semibold tabular-nums">
-              ≈ {formatCurrencyIn(state.resultCents, to)}
+              ≈ {formatCurrencyIn(state.resultCents, state.to)}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Taux utilisé : 1 {from} = {state.rate.toFixed(4)} {to} — dernière mise à jour :{" "}
+              Taux utilisé : 1 {state.from} = {state.rate.toFixed(4)} {state.to} — donnée du{" "}
               {formatDate(new Date(state.fetchedAt))}
-              {state.stale && " (hors ligne, dernière valeur connue)"}
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Les conversions sont des estimations basées sur le dernier taux disponible. Le taux
+              réellement appliqué par votre banque ou votre prestataire peut différer.
             </p>
           </div>
         )}

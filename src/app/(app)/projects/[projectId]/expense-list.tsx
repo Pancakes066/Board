@@ -16,11 +16,20 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { formatCurrency, formatCurrencyIn } from "@/lib/utils/currency";
 import { formatDate } from "@/lib/utils/date";
+import { applyMargin } from "@/server/services/currency/convert";
 import { ExpenseFormDialog, type ProjectExpenseFormValues } from "./expense-form-dialog";
 
 type ExpenseWithTransaction = ProjectExpense & { transaction: Transaction | null };
 
-function ExpenseRow({ projectId, expense }: { projectId: string; expense: ExpenseWithTransaction }) {
+function ExpenseRow({
+  projectId,
+  expense,
+  fxSafetyMarginPct,
+}: {
+  projectId: string;
+  expense: ExpenseWithTransaction;
+  fxSafetyMarginPct: number | null;
+}) {
   const [editing, setEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -77,16 +86,27 @@ function ExpenseRow({ projectId, expense }: { projectId: string; expense: Expens
                 ) : (
                   <span className="italic">conversion indisponible</span>
                 )}
-                {expense.exchangeRate && expense.convertedAt && (
-                  <span className="ml-1 text-xs">
-                    (taux : 1 EUR = {expense.exchangeRate.toFixed(2)} {expense.currency}, estimation
-                    basée sur le taux du {formatDate(expense.convertedAt)})
-                  </span>
-                )}
               </>
             )}
             {expense.plannedDate && <> — {formatDate(expense.plannedDate)}</>}
           </p>
+          {expense.currency !== "EUR" && expense.exchangeRate && expense.convertedAt && (
+            <p className="text-xs text-muted-foreground">
+              Taux utilisé : 1 EUR = {expense.exchangeRate.toFixed(2)} {expense.currency} — donnée du{" "}
+              {formatDate(expense.convertedAt)}. Estimation basée sur le dernier taux disponible, le
+              taux réellement appliqué par votre banque peut différer.
+              {fxSafetyMarginPct && homeCents !== null && (
+                <>
+                  {" "}
+                  Budget prévisionnel sécurisé (marge +{fxSafetyMarginPct}%) :{" "}
+                  <span className="font-medium text-foreground">
+                    {formatCurrency(applyMargin(homeCents, fxSafetyMarginPct))}
+                  </span>
+                  .
+                </>
+              )}
+            </p>
+          )}
           {expense.note && <p className="text-xs text-muted-foreground">{expense.note}</p>}
         </div>
         <div className="flex flex-wrap gap-1.5">
@@ -175,9 +195,11 @@ function ExpenseRow({ projectId, expense }: { projectId: string; expense: Expens
 export function ExpenseList({
   projectId,
   expenses,
+  fxSafetyMarginPct,
 }: {
   projectId: string;
   expenses: ExpenseWithTransaction[];
+  fxSafetyMarginPct: number | null;
 }) {
   const [creating, setCreating] = useState(false);
   const total = expenses.reduce(
@@ -207,7 +229,12 @@ export function ExpenseList({
         ) : (
           <>
             {expenses.map((expense) => (
-              <ExpenseRow key={expense.id} projectId={projectId} expense={expense} />
+              <ExpenseRow
+                key={expense.id}
+                projectId={projectId}
+                expense={expense}
+                fxSafetyMarginPct={fxSafetyMarginPct}
+              />
             ))}
             <div className="flex items-center justify-between pt-3 font-medium">
               <span>Total</span>

@@ -8,7 +8,20 @@ import { getRate } from "@/server/services/currency/exchange-rates";
 import { convertCents } from "@/server/services/currency/convert";
 
 export type ConvertActionState =
-  | { ok: true; resultCents: number; rate: number; fetchedAt: string; stale: boolean }
+  | {
+      ok: true;
+      resultCents: number;
+      rate: number;
+      fetchedAt: string;
+      stale: boolean;
+      // Echoed back from the request that actually produced this result —
+      // the UI must render against these, never against whatever the
+      // dropdowns currently show, or the displayed rate/result can drift
+      // out of sync with the labels next to them the moment the user
+      // touches a dropdown again without resubmitting.
+      from: string;
+      to: string;
+    }
   | { ok: false; error: string }
   | undefined;
 
@@ -49,5 +62,7 @@ export async function convertCurrencyAction(
     rate: result.rate,
     fetchedAt: result.fetchedAt.toISOString(),
     stale: result.stale,
+    from,
+    to,
   };
 }

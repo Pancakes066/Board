@@ -96,7 +96,11 @@ export default async function ProjectDetailPage({
         />
       </div>
 
-      <ExpenseList projectId={project.id} expenses={project.expenses} />
+      <ExpenseList
+        projectId={project.id}
+        expenses={project.expenses}
+        fxSafetyMarginPct={project.fxSafetyMarginPct}
+      />
     </div>
   );
 }
