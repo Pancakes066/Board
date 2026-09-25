@@ -27,5 +27,8 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Also excludes static files served straight from public/ (images,
+  // fonts, etc.) by extension — without this, e.g. /auth-bg.png gets
+  // redirected to /login same as any other unauthenticated route.
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.\\w+$).*)"],
 };
