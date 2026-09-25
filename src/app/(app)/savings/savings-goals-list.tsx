@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Category } from "@prisma/client";
-import { Plus } from "lucide-react";
+import { Plus, Target } from "lucide-react";
 
 import type { SavingsGoalWithProgress } from "@/server/services/savings/goal-projection";
 import { Button } from "@/components/ui/button";
@@ -29,8 +29,11 @@ export function SavingsGoalsList({
 
       {goals.length === 0 ? (
         <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            Aucun objectif d&apos;épargne pour l&apos;instant.
+          <CardContent className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+            <Target className="size-6 text-muted-foreground/50" />
+            <p className="text-sm text-muted-foreground">
+              Aucun objectif d&apos;épargne pour l&apos;instant.
+            </p>
           </CardContent>
         </Card>
       ) : (

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Wallet } from "lucide-react";
 import type { Category } from "@prisma/client";
 
 import type { BudgetWithProgress } from "@/server/services/budgets/budget-progress";
@@ -122,9 +122,10 @@ export function BudgetList({
       <Card>
         <CardContent className="divide-y divide-border">
           {budgets.length === 0 ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">
-              Aucun budget défini pour l&apos;instant.
-            </p>
+            <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+              <Wallet className="size-6 text-muted-foreground/50" />
+              <p className="text-sm text-muted-foreground">Aucun budget défini pour l&apos;instant.</p>
+            </div>
           ) : (
             budgets.map((b) => <BudgetRow key={b.id} budget={b} categories={allCategories} />)
           )}

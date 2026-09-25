@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus, Pencil, Trash2, Ban, RotateCcw } from "lucide-react";
+import { Plus, Pencil, Trash2, Ban, RotateCcw, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import type { Category, RecurringRule } from "@prisma/client";
 
@@ -159,9 +159,12 @@ export function RecurringRuleList({
       <Card>
         <CardContent>
           {rules.length === 0 ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">
-              Aucun revenu ou dépense récurrent pour l&apos;instant.
-            </p>
+            <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+              <Repeat className="size-6 text-muted-foreground/50" />
+              <p className="text-sm text-muted-foreground">
+                Aucun revenu ou dépense récurrent pour l&apos;instant.
+              </p>
+            </div>
           ) : (
             <Table>
               <TableHeader>

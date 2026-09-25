@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Repeat } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,9 +33,12 @@ export default async function SubscriptionsPage() {
 
       {subscriptions.length === 0 ? (
         <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            Aucun abonnement pour l&apos;instant. Cochez « C&apos;est un abonnement » sur une dépense
-            récurrente pour qu&apos;elle apparaisse ici.
+          <CardContent className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+            <Repeat className="size-6 text-muted-foreground/50" />
+            <p className="text-sm text-muted-foreground">
+              Aucun abonnement pour l&apos;instant. Cochez « C&apos;est un abonnement » sur une dépense
+              récurrente pour qu&apos;elle apparaisse ici.
+            </p>
           </CardContent>
         </Card>
       ) : (

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { MoreHorizontal, Plus } from "lucide-react";
+import { MoreHorizontal, Plus, Receipt } from "lucide-react";
 import type { Category, FlowType, OccurrenceStatus, RecurringRule, Transaction } from "@prisma/client";
 
 import {
@@ -217,9 +217,10 @@ export function TransactionList({
       <Card>
         <CardContent>
           {filtered.length === 0 ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">
-              Aucune transaction pour ce filtre.
-            </p>
+            <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+              <Receipt className="size-6 text-muted-foreground/50" />
+              <p className="text-sm text-muted-foreground">Aucune transaction pour ce filtre.</p>
+            </div>
           ) : (
             <Table>
               <TableHeader>
